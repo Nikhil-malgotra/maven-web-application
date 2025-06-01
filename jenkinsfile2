@@ -3,7 +3,7 @@ node
     def mavenHome = tool name: "maven3.9.9"
     properties([buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '5', daysToKeepStr: '', numToKeepStr: '5'))])
     echo "the job name is : ${JOB_NAME}"
-
+try {
     stage('gitCheckout'){
         git credentialsId: '5a167689-ee0e-43bf-8623-08d4470813a8', url: 'https://github.com/Nikhil-malgotra/maven-web-application.git'
     }
@@ -22,4 +22,33 @@ node
 }
     }
 */
+}
+catch(e) {
+currentBuild.result = "FAILURE"
+throw e
+}
+finally {
+slackNotification(currentBuild.result)
+}
+} // node closing
+
+def slackNotification(String buildStatus = 'STARTED') {
+  buildStatus =  buildStatus ?: 'SUCCESS'
+
+  // Default values
+  def colorCode = '#FF0000'
+  def subject = "${buildStatus}: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'"
+  def summary = "${subject} (${env.BUILD_URL})"
+
+  // Override default values based on build status
+  if (buildStatus == 'STARTED') {
+    colorCode = '#FFFF00' //yellow corlor
+  } else if (buildStatus == 'SUCCESS') {
+    colorCode = '#00FF00' // green
+  } else {
+    colorCode = '#FF0000' // red
+  }
+
+  // Send notifications
+  slackSend (color: colorCode, message: summary)
 }
