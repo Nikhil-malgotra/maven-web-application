@@ -10,10 +10,10 @@ slackNotification('STARTED')
     }
     stage('Build'){
         sh "${mavenHome}/bin/mvn clean package"
-    } /*
+    } 
     stage('sonarReport'){
         sh "${mavenHome}/bin/mvn sonar:sonar"
-    }
+    } /*
     stage('nexusArtifact'){
         sh "${mavenHome}/bin/mvn deploy"
     }
