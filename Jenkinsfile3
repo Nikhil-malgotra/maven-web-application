@@ -1,5 +1,7 @@
 pipeline{
-    agent any
+    agent {
+label "nodes"
+}
     parameters {
   choice choices: ['master', 'devlopment'], description: 'select git branch...', name: 'branchName'
 }//adding parameterized choise to select branch 
