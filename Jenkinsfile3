@@ -1,0 +1,79 @@
+pipeline{
+    agent any
+    parameters {
+  choice choices: ['master', 'devlopment'], description: 'select git branch...', name: 'branchName'
+}//adding parameterized choise to select branch 
+    tools{
+        maven "maven3.9.9"
+    }//all the tool needed in proj can be placed in here
+    options {
+  buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '5', daysToKeepStr: '', numToKeepStr: '5')
+
+} // options in declarative generator provides option to set multiple cond.
+
+    stages{
+        stage('gitCheckout'){
+            steps{
+                slackNotify('STARTED') // calling slack fn to send notifi. to slack.
+                git credentialsId: '5a167689-ee0e-43bf-8623-08d4470813a8', url: 'https://github.com/Nikhil-malgotra/maven-web-application.git'
+            }
+        }// to connect git 
+        stage('Build'){
+        steps{
+            sh "mvn clean package"
+        }
+        }// build 
+        stage('sonarReport'){
+            steps{
+                sh "mvn sonar:sonar"
+            }
+        }// generating sonar report
+        stage('nexusArtifact'){
+            steps{
+                sh "mvn deploy"
+            }
+        }// uploading artifact to nexus repo
+        stage('deploytoTomcat'){
+            steps{
+                sshagent(['c8a26476-a36e-4272-84aa-eb6736cf848b']) {
+    sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@172.31.43.195:/opt/apache-tomcat-9.0.105/webapps"
+}
+            }
+        }// deploying to tomcat web server
+    }// stages closing
+    post {
+  success {
+    // One or more steps need to be included within each condition's block.
+    slackNotify(currentBuild.result)
+  }
+  failure {
+    // One or more steps need to be included within each condition's block.
+    slackNotify(currentBuild.result)
+  }
+}//post closing
+
+}//pipeline closing
+
+def slackNotify(String buildStatus = 'STARTED'){
+    // if slacknotify fn is used passing null value then it would be Success bcoz of below line
+    buildStatus = buildStatus ?: 'SUCCESS'
+    
+    //default values
+    def msg = "${buildStatus}: Job '${JOB_NAME} [${BUILD_NUMBER}]'"
+    def summary = "${msg} ${BUILD_URL}"
+    
+    //colors for slack notifiy
+    if (buildStatus == 'STARTED'){
+        colorCode = '#64afed' //blue
+    } else if (buildStatus == 'SUCCESS'){
+        colorCode = '#12a112' // green
+    } else {
+        colorCode = '#b3073b' // red
+    }
+    // sending notify to slack
+     slackSend (color: colorCode, message: summary)
+}
+
+
+
+
