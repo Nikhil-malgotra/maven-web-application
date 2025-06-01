@@ -4,7 +4,6 @@ node
     properties([buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '5', daysToKeepStr: '', numToKeepStr: '5'))])
     echo "the job name is : ${JOB_NAME}"
 try {
-slackNotification('STARTED')
     stage('gitCheckout'){
         git credentialsId: '5a167689-ee0e-43bf-8623-08d4470813a8', url: 'https://github.com/Nikhil-malgotra/maven-web-application.git'
     }
