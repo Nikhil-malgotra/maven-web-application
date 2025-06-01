@@ -28,8 +28,8 @@ label "nodes"
         stage('sonarReport'){
             steps{
                 sh "mvn sonar:sonar"
-            }
-        }// generating sonar report
+            } 
+        }// generating sonar report /*
         stage('nexusArtifact'){
             steps{
                 sh "mvn deploy"
@@ -41,7 +41,7 @@ label "nodes"
     sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@172.31.43.195:/opt/apache-tomcat-9.0.105/webapps"
 }
             }
-        }// deploying to tomcat web server
+        }// deploying to tomcat web server */
     }// stages closing
     post {
   success {
